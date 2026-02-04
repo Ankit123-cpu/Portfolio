@@ -17,66 +17,166 @@
             --secondary: #bd00ff; /* Neon Purple */
             --text: #ffffff;
             --glass: rgba(255, 255, 255, 0.05);
-            --success: #00ff41; /* Hacker Green for Deployment */
+            --success: #00ff41; /* Hacker Green */
+            --alert: #ff0055;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; cursor: crosshair; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', monospace; cursor: none; }
         body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
         html { scroll-behavior: smooth; }
 
-        /* --- 2. MATRIX RAIN CANVAS --- */
+        /* --- 2. PRELOADER (BOOT SEQUENCE) --- */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 10000; display: flex;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        .loader-text {
+            color: var(--primary); font-size: 1.5rem; font-weight: bold;
+            text-shadow: 0 0 10px var(--primary); margin-bottom: 20px;
+        }
+        .loader-bar {
+            width: 300px; height: 4px; background: #333; border-radius: 2px;
+            position: relative; overflow: hidden;
+        }
+        .loader-progress {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+            background: var(--primary); box-shadow: 0 0 15px var(--primary);
+            animation: load 2s ease-in-out forwards;
+        }
+        @keyframes load { 0% { width: 0%; } 50% { width: 70%; } 100% { width: 100%; } }
+
+        /* --- 3. SCROLL PROGRESS BAR --- */
+        #progress-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 2px; z-index: 9999; background: transparent;
+        }
+        #progress-bar {
+            height: 100%; background: var(--secondary); width: 0%;
+            box-shadow: 0 0 10px var(--secondary); transition: width 0.1s;
+        }
+
+        /* --- 4. MAGNETIC CURSOR --- */
+        #cursor {
+            position: fixed; top: 0; left: 0; width: 20px; height: 20px;
+            border: 2px solid var(--primary); border-radius: 50%; pointer-events: none;
+            z-index: 9999; transition: transform 0.1s, background 0.2s;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--primary);
+            mix-blend-mode: difference;
+        }
+        #cursor.hovered {
+            transform: translate(-50%, -50%) scale(2.5);
+            background: rgba(10, 255, 240, 0.1); border-color: var(--text);
+        }
+
+        /* MATRIX CANVAS */
         canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.15; }
 
-        /* --- 3. NAVIGATION (Floating) --- */
+        /* --- 5. NEW "COMMAND DECK" NAVIGATION --- */
         nav {
             position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 600px; padding: 15px 30px;
+            width: 90%; max-width: 1000px; height: 75px;
+            background: rgba(5, 5, 5, 0.9);
+            border: 1px solid var(--primary);
+            border-bottom: 4px solid var(--secondary);
+            border-radius: 10px; z-index: 1000;
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.8); border: 1px solid var(--primary);
-            border-radius: 50px; z-index: 1000; box-shadow: 0 0 15px rgba(10, 255, 240, 0.3);
+            padding: 0 20px;
+            box-shadow: 0 0 20px rgba(10, 255, 240, 0.2);
             backdrop-filter: blur(10px);
         }
-        .nav-links a { 
-            text-decoration: none; color: var(--text); font-weight: bold; font-size: 0.9rem; 
-            transition: 0.3s; position: relative;
-        }
-        .nav-links a:hover { color: var(--primary); text-shadow: 0 0 8px var(--primary); }
 
-        /* --- 4. HERO SECTION (Glitch Effect) --- */
+        /* Corner accents for the HUD look */
+        nav::before {
+            content: ''; position: absolute; top: -2px; left: 20px; width: 20px; height: 2px; background: var(--bg); z-index: 1;
+        }
+        nav::after {
+            content: ''; position: absolute; bottom: -6px; right: 20px; width: 20px; height: 4px; background: var(--bg); z-index: 1;
+        }
+
+        /* Left Section: Identity & Status */
+        .nav-left { display: flex; align-items: center; gap: 20px; }
+        .logo { 
+            font-size: 1.8rem; font-weight: 900; color: var(--text); letter-spacing: -1px;
+            text-shadow: 3px 3px 0px rgba(189, 0, 255, 0.5); font-style: italic;
+        }
+        .tech-tag-group { display: flex; flex-direction: column; gap: 2px; }
+        .tech-tag {
+            font-size: 0.6rem; color: var(--primary); font-family: monospace;
+            background: rgba(10, 255, 240, 0.1); padding: 1px 4px; border-left: 2px solid var(--primary);
+        }
+
+        /* Center Section: Main Controls */
+        .nav-center { display: flex; gap: 10px; }
+        .nav-link {
+            text-decoration: none; color: #aaa; font-size: 0.8rem; font-weight: bold;
+            padding: 8px 16px; border: 1px solid #333; background: #111;
+            transition: 0.3s; clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
+        }
+        .nav-link:hover {
+            background: var(--primary); color: #000; border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+        }
+
+        /* Right Section: Action & Metrics */
+        .nav-right { display: flex; align-items: center; gap: 15px; }
+        
+        .live-indicator {
+            display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--alert);
+            border: 1px solid var(--alert); padding: 4px 8px; border-radius: 4px;
+        }
+        .rec-dot { width: 8px; height: 8px; background: var(--alert); border-radius: 50%; animation: pulse-red 1s infinite; }
+        @keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+        .hire-btn {
+            background: var(--success); color: #000; font-weight: 900;
+            padding: 10px 25px; text-decoration: none; font-size: 0.9rem;
+            clip-path: polygon(0 0, 100% 0, 100% 70%, 90% 100%, 0 100%);
+            transition: 0.3s; letter-spacing: 1px;
+        }
+        .hire-btn:hover {
+            background: var(--text); box-shadow: 0 0 20px var(--text); transform: scale(1.05);
+        }
+
+        /* --- 6. HERO SECTION & GLITCH --- */
         .hero {
             height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center;
             text-align: center; padding: 0 20px;
         }
         
-        /* Glitch Animation Keyframes */
-        @keyframes glitch {
-            0% { transform: translate(0) }
-            20% { transform: translate(-2px, 2px) }
-            40% { transform: translate(-2px, -2px) }
-            60% { transform: translate(2px, 2px) }
-            80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
-        }
-        
+        .glitch-wrapper { position: relative; display: inline-block; }
         .glitch-text {
             font-size: 5rem; font-weight: 900; color: var(--text); position: relative;
-            animation: glitch 2s infinite; text-shadow: 2px 2px var(--secondary), -2px -2px var(--primary);
+            text-shadow: 0 0 5px rgba(255,255,255,0.5); 
+        }
+        
+        /* Interactive Glitch on Hover */
+        .glitch-wrapper:hover .glitch-text {
+            animation: noise 0.5s infinite linear;
+        }
+        @keyframes noise {
+            0% { transform: translate(0,0); text-shadow: -2px 0 var(--secondary); }
+            20% { transform: translate(-2px,2px); text-shadow: 2px 0 var(--primary); }
+            40% { transform: translate(2px,-2px); text-shadow: -2px 0 var(--secondary); }
+            60% { transform: translate(-2px,-2px); text-shadow: 2px 0 var(--primary); }
+            80% { transform: translate(2px,2px); text-shadow: -2px 0 var(--secondary); }
+            100% { transform: translate(0,0); text-shadow: 2px 0 var(--primary); }
         }
 
         .hero p { font-size: 1.2rem; margin-top: 20px; color: #aaa; max-width: 600px; }
         .hero span { color: var(--primary); font-weight: bold; }
 
-        /* --- 5. SKILLS ORBS (New Design) --- */
-        section { padding: 100px 10%; position: relative; }
+        /* --- 7. DECODING TEXT HEADERS --- */
         .section-title {
             font-size: 3rem; margin-bottom: 60px; text-align: center;
-            text-transform: uppercase; border-bottom: 2px solid var(--secondary); display: inline-block;
+            text-transform: uppercase; border-bottom: 2px solid var(--secondary); 
+            display: inline-block; color: var(--text);
         }
         .center-wrap { text-align: center; width: 100%; }
 
-        .skills-container {
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 30px;
-        }
+        /* --- 8. SKILLS ORBS --- */
+        section { padding: 100px 10%; position: relative; }
+        .skills-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; }
         
         .skill-orb {
             width: 140px; height: 140px; border-radius: 50%;
@@ -85,7 +185,6 @@
             transition: 0.5s; position: relative; overflow: hidden;
             box-shadow: 0 0 10px rgba(10, 255, 240, 0.1);
         }
-        
         .skill-orb i { font-size: 2.5rem; margin-bottom: 10px; color: var(--text); transition: 0.5s; }
         .skill-orb span { font-size: 0.8rem; font-weight: bold; z-index: 2; }
         
@@ -93,34 +192,36 @@
             content: ''; position: absolute; top: 100%; left: 0; width: 100%; height: 100%;
             background: var(--primary); transition: 0.5s; z-index: 1;
         }
-
         .skill-orb:hover { transform: translateY(-15px) scale(1.1); box-shadow: 0 0 30px var(--primary); border-color: var(--text); }
         .skill-orb:hover::before { top: 0; }
         .skill-orb:hover i, .skill-orb:hover span { color: #000; }
 
-        /* --- 6. ACHIEVEMENTS (Holographic Cards) --- */
-        .achievement-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;
+        /* --- 9. HOLOGRAPHIC CARDS --- */
+        .project-card, .trophy-card {
+            background: #111; padding: 30px; border: 1px solid #333; margin-bottom: 20px;
+            transition: 0.3s; position: relative; overflow: hidden;
         }
-        
-        .trophy-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-            border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-            padding: 30px; border-radius: 20px; transition: 0.5s;
-            position: relative; overflow: hidden;
+        .project-card::after, .trophy-card::after {
+            content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 50%;
+            background: linear-gradient(to bottom, transparent, rgba(10, 255, 240, 0.2));
+            transition: 0.5s; pointer-events: none;
+        }
+        .project-card:hover::after, .trophy-card:hover::after {
+            top: 100%; transition: 1s ease-in-out;
+        }
+        .project-card:hover, .trophy-card:hover {
+            border-color: var(--primary); transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(10, 255, 240, 0.1);
         }
 
-        .trophy-card:hover {
-            transform: translateY(-10px) rotateX(5deg);
-            border-color: var(--secondary);
-            box-shadow: 0 0 30px rgba(189, 0, 255, 0.3);
-        }
+        .project-card { display: flex; align-items: center; justify-content: space-between; }
+        .tech-tag { color: var(--primary); font-size: 0.8rem; margin-right: 10px; border: 1px solid var(--primary); padding: 2px 8px; }
 
+        .achievement-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; }
+        .trophy-card { padding: 30px; border-radius: 20px; }
         .trophy-icon { font-size: 3rem; color: var(--secondary); margin-bottom: 20px; }
-        .trophy-card h3 { font-size: 1.2rem; margin-bottom: 10px; }
-        .trophy-card p { font-size: 0.9rem; color: #aaa; }
 
-        /* --- 7. EXPERIENCE & PROJECTS (Clean Layout) --- */
+        /* --- 10. EXPERIENCE --- */
         .timeline-item {
             border-left: 2px solid var(--primary); padding-left: 30px; margin-bottom: 40px; position: relative;
         }
@@ -129,175 +230,150 @@
             background: var(--primary); box-shadow: 0 0 10px var(--primary);
         }
 
-        .project-card {
-            background: #111; padding: 30px; border: 1px solid #333; margin-bottom: 20px;
-            transition: 0.3s; display: flex; align-items: center; justify-content: space-between;
-        }
-        .project-card:hover { border-color: var(--primary); background: #0a0a0a; transform: scale(1.02); }
-        .tech-tag { color: var(--primary); font-size: 0.8rem; margin-right: 10px; border: 1px solid var(--primary); padding: 2px 8px; }
-
         /* --- FOOTER --- */
         footer { padding: 50px; text-align: center; border-top: 1px solid #333; }
-        .social-btn {
-            font-size: 1.5rem; color: var(--text); margin: 0 15px; transition: 0.3s;
+        .social-btn { font-size: 1.5rem; color: var(--text); margin: 0 15px; transition: 0.3s; }
+        .social-btn:hover { color: var(--primary); transform: scale(1.2); text-shadow: 0 0 10px var(--primary); }
+
+        /* RESPONSIVE NAV */
+        @media(max-width: 900px) {
+            nav { width: 98%; padding: 0 10px; height: 60px; }
+            .tech-tag-group, .live-indicator { display: none; }
+            .nav-link { padding: 6px 10px; font-size: 0.7rem; }
+            .hire-btn { padding: 8px 15px; font-size: 0.8rem; }
         }
-        .social-btn:hover { color: var(--primary); transform: scale(1.2); }
     </style>
 </head>
 <body>
 
+    <div id="preloader">
+        <div class="loader-text">INITIALIZING SYSTEM...</div>
+        <div class="loader-bar"><div class="loader-progress"></div></div>
+    </div>
+
+    <div id="progress-container"><div id="progress-bar"></div></div>
+
+    <div id="cursor"></div>
+
     <canvas id="matrix"></canvas>
 
-    <nav data-aos="fade-down">
-        <div class="logo" style="color:var(--primary); font-weight:900;">AG.</div>
-        <div class="nav-links">
-            <a href="#skills">Skills</a>
-            <a href="#achievements">Awards</a>
-            <a href="#experience">Work</a>
-            <a href="#projects">Code</a>
+    <nav data-aos="fade-down" data-aos-duration="1200">
+        
+        <div class="nav-left">
+            <div class="logo hover-target">AG.</div>
+            <div class="tech-tag-group">
+                <span class="tech-tag">MEM: 64%</span>
+                <span class="tech-tag">NET: SECURE</span>
+            </div>
         </div>
+
+        <div class="nav-center">
+            <a href="#skills" class="nav-link hover-target">SKILLS</a>
+            <a href="#achievements" class="nav-link hover-target">AWARDS</a>
+            <a href="#experience" class="nav-link hover-target">WORK</a>
+            <a href="#projects" class="nav-link hover-target">CODE</a>
+        </div>
+
+        <div class="nav-right">
+            <div class="live-indicator">
+                <div class="rec-dot"></div> REC
+            </div>
+            <a href="mailto:ankit6969g@gmail.com" class="hire-btn hover-target">HIRE ME</a>
+        </div>
+
     </nav>
 
     <header class="hero">
-        <h1 class="glitch-text" data-text="ANKIT GOSWAMI">ANKIT GOSWAMI</h1>
+        <div class="glitch-wrapper hover-target">
+            <h1 class="glitch-text" data-text="ANKIT GOSWAMI">ANKIT GOSWAMI</h1>
+        </div>
+        
         <div style="margin-top:20px;" data-aos="fade-up" data-aos-delay="200">
             <span style="border:1px solid var(--primary); padding:5px 15px;">DATA ANALYST</span>
             <span style="border:1px solid var(--secondary); padding:5px 15px; margin-left:10px;">JAVA DEV</span>
             <span style="border:1px solid var(--secondary); padding:5px 15px; margin-left:10px;">FULL STACK DEV</span>
         </div>
+        
         <p data-aos="fade-up" data-aos-delay="400">
             Analyzing Data. Building Architecture. Transforming Insights. <br>
             BCA Graduate | Microsoft Certified | <span>Ex-IBM Intern</span>
-	<div style="margin-top: 40px; display: flex; gap: 20px;" data-aos="fade-up" data-aos-delay="600">
-            
-            <a href="Ankit_Resume (3).pdf" target="_blank" style="
-                text-decoration: none; 
-                padding: 12px 30px; 
-                border: 1px solid var(--primary); 
-                color: var(--primary); 
-                font-weight: bold; 
-                letter-spacing: 1px;
-                transition: 0.3s;
+        </p>
+
+        <div style="margin-top: 40px; display: flex; gap: 20px;" data-aos="fade-up" data-aos-delay="600">
+            <a href="Ankit_Resume (3).pdf" target="_blank" class="hover-target" style="
+                text-decoration: none; padding: 12px 30px; border: 1px solid var(--primary); 
+                color: var(--primary); font-weight: bold; letter-spacing: 1px; transition: 0.3s;
                 background: rgba(0, 255, 240, 0.05);
             " onmouseover="this.style.background='var(--primary)'; this.style.color='black'; this.style.boxShadow='0 0 20px var(--primary)'" 
                onmouseout="this.style.background='rgba(0, 255, 240, 0.05)'; this.style.color='var(--primary)'; this.style.boxShadow='none'">
                DOWNLOAD RESUME
             </a>
-
-            <a href="mailto:ankit6969g@gmail.com" style="
-                text-decoration: none; 
-                padding: 12px 30px; 
-                border: 1px solid var(--secondary); 
-                color: var(--secondary); 
-                font-weight: bold; 
-                letter-spacing: 1px;
-                transition: 0.3s;
-            " onmouseover="this.style.background='var(--secondary)'; this.style.color='white'; this.style.boxShadow='0 0 20px var(--secondary)'" 
-               onmouseout="this.style.background='transparent'; this.style.color='var(--secondary)'; this.style.boxShadow='none'">
-               HIRE ME
-            </a>
-
         </div>
-        </p>
     </header>
 
     <section id="skills">
         <div class="center-wrap">
-            <h2 class="section-title" data-aos="zoom-in">Technical Arsenal</h2>
+            <h2 class="section-title decode-effect" data-value="Technical Arsenal">Technical Arsenal</h2>
         </div>
         
         <h3 style="text-align:center; color:#888; margin-bottom:30px;">LANGUAGES & BACKEND</h3>
         <div class="skills-container">
-            <div class="skill-orb" data-aos="flip-left" data-aos-delay="0">
-                <i class="fab fa-java"></i> <span>JAVA</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-left" data-aos-delay="100">
-                <i class="fab fa-python"></i> <span>PYTHON</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-left" data-aos-delay="200">
-                <i class="fas fa-code"></i> <span>C / C++</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-left" data-aos-delay="300">
-                <i class="fab fa-node-js"></i> <span>NODE JS</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-left" data-aos-delay="400">
-                <i class="fas fa-server"></i> <span>REST APIs</span>
-            </div>
+            <div class="skill-orb hover-target" data-aos="flip-left" data-aos-delay="0"><i class="fab fa-java"></i> <span>JAVA</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-left" data-aos-delay="100"><i class="fab fa-python"></i> <span>PYTHON</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-left" data-aos-delay="200"><i class="fas fa-code"></i> <span>C / C++</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-left" data-aos-delay="300"><i class="fab fa-node-js"></i> <span>NODE JS</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-left" data-aos-delay="400"><i class="fas fa-server"></i> <span>REST APIs</span></div>
         </div>
 
         <h3 style="text-align:center; color:#888; margin:50px 0 30px 0;">DATA & ANALYTICS</h3>
         <div class="skills-container">
-            <div class="skill-orb" data-aos="flip-right" data-aos-delay="0">
-                <i class="fas fa-database"></i> <span>SQL / MySQL</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-right" data-aos-delay="100">
-                <i class="fas fa-leaf"></i> <span>MONGODB</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-right" data-aos-delay="200">
-                <i class="fas fa-table"></i> <span>ADV EXCEL</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-right" data-aos-delay="300">
-                <i class="fas fa-chart-line"></i> <span>STATISTICS</span>
-            </div>
-            <div class="skill-orb" data-aos="flip-right" data-aos-delay="400">
-                <i class="fas fa-chart-pie"></i> <span>VISUALIZATION</span>
-            </div>
+            <div class="skill-orb hover-target" data-aos="flip-right" data-aos-delay="0"><i class="fas fa-database"></i> <span>SQL / MySQL</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-right" data-aos-delay="100"><i class="fas fa-leaf"></i> <span>MONGODB</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-right" data-aos-delay="200"><i class="fas fa-table"></i> <span>ADV EXCEL</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-right" data-aos-delay="300"><i class="fas fa-chart-line"></i> <span>STATISTICS</span></div>
+            <div class="skill-orb hover-target" data-aos="flip-right" data-aos-delay="400"><i class="fas fa-chart-pie"></i> <span>VISUALIZATION</span></div>
         </div>
 
         <h3 style="text-align:center; color:#888; margin:50px 0 30px 0;">FRONTEND & TOOLS</h3>
         <div class="skills-container">
-            <div class="skill-orb" data-aos="zoom-in" data-aos-delay="0">
-                <i class="fab fa-html5"></i> <span>HTML/CSS</span>
-            </div>
-            <div class="skill-orb" data-aos="zoom-in" data-aos-delay="100">
-                <i class="fab fa-js"></i> <span>JAVASCRIPT</span>
-            </div>
-            <div class="skill-orb" data-aos="zoom-in" data-aos-delay="200">
-                <i class="fab fa-android"></i> <span>ANDROID</span>
-            </div>
-            <div class="skill-orb" data-aos="zoom-in" data-aos-delay="300">
-                <i class="fas fa-cube"></i> <span>BLENDER</span>
-            </div>
+            <div class="skill-orb hover-target" data-aos="zoom-in" data-aos-delay="0"><i class="fab fa-html5"></i> <span>HTML/CSS</span></div>
+            <div class="skill-orb hover-target" data-aos="zoom-in" data-aos-delay="100"><i class="fab fa-js"></i> <span>JAVASCRIPT</span></div>
+            <div class="skill-orb hover-target" data-aos="zoom-in" data-aos-delay="200"><i class="fab fa-android"></i> <span>ANDROID</span></div>
+            <div class="skill-orb hover-target" data-aos="zoom-in" data-aos-delay="300"><i class="fas fa-cube"></i> <span>BLENDER</span></div>
         </div>
     </section>
 
     <section id="achievements">
         <div class="center-wrap">
-            <h2 class="section-title" data-aos="zoom-in">Distinctions</h2>
+            <h2 class="section-title decode-effect" data-value="Distinctions">Distinctions</h2>
         </div>
         <div class="achievement-grid">
-            
-            <div class="trophy-card" data-aos="fade-up">
+            <div class="trophy-card hover-target" data-aos="fade-up">
                 <i class="fas fa-cloud trophy-icon"></i>
                 <h3>Azure Developer Associate</h3>
                 <p>Microsoft Certified Professional</p>
             </div>
-
-            <div class="trophy-card" data-aos="fade-up" data-aos-delay="100">
+            <div class="trophy-card hover-target" data-aos="fade-up" data-aos-delay="100">
                 <i class="fab fa-google trophy-icon"></i>
                 <h3>Pro Cloud Developer</h3>
                 <p>Google Cloud Certification</p>
             </div>
-
-            <div class="trophy-card" data-aos="fade-up" data-aos-delay="200">
+            <div class="trophy-card hover-target" data-aos="fade-up" data-aos-delay="200">
                 <i class="fas fa-medal trophy-icon" style="color:gold;"></i>
                 <h3>1st Place - E Store Sales</h3>
                 <p>Intra Collegiate Competition 2023-24</p>
             </div>
-
-            <div class="trophy-card" data-aos="fade-up" data-aos-delay="300">
+            <div class="trophy-card hover-target" data-aos="fade-up" data-aos-delay="300">
                 <i class="fas fa-shield-alt trophy-icon"></i>
                 <h3>NCC 'C' Certificate</h3>
                 <p>Grade "A" - National Cadet Corps</p>
             </div>
-
-            <div class="trophy-card" data-aos="fade-up" data-aos-delay="400">
+            <div class="trophy-card hover-target" data-aos="fade-up" data-aos-delay="400">
                 <i class="fas fa-network-wired trophy-icon"></i>
                 <h3>Infosys Certifications</h3>
                 <p>Blockchain & Network Fundamentals</p>
             </div>
-
-            <div class="trophy-card" data-aos="fade-up" data-aos-delay="500">
+            <div class="trophy-card hover-target" data-aos="fade-up" data-aos-delay="500">
                 <i class="fas fa-database trophy-icon"></i>
                 <h3>MongoDB & Celonis</h3>
                 <p>Database & Process Automation</p>
@@ -307,10 +383,9 @@
 
     <section id="experience">
         <div class="center-wrap">
-            <h2 class="section-title" data-aos="zoom-in">Work History</h2>
+            <h2 class="section-title decode-effect" data-value="Work History">Work History</h2>
         </div>
-        
-        <div class="timeline-item" data-aos="fade-right">
+        <div class="timeline-item hover-target" data-aos="fade-right">
             <h3 style="font-size:1.5rem;">DATA ANALYST INTERN</h3>
             <span style="color:var(--primary); font-weight:bold;">IBM | May 2024 - July 2024</span>
             <p style="margin-top:10px; color:#ccc; line-height:1.6;">
@@ -323,10 +398,10 @@
 
     <section id="projects">
         <div class="center-wrap">
-            <h2 class="section-title" data-aos="zoom-in">Code Lab</h2>
+            <h2 class="section-title decode-effect" data-value="Code Lab">Code Lab</h2>
         </div>
 
-        <div class="project-card" data-aos="flip-up">
+        <div class="project-card hover-target" data-aos="flip-up">
             <div>
                 <h3 style="color: var(--primary);">Automated ETL Pipeline (Thesis)</h3>
                 <p style="color:#888; font-size:0.9rem;">Python-based pipeline for large-scale retail datasets. Implemented dimensionality reduction & feature engineering to identify profitability thresholds.</p>
@@ -336,17 +411,17 @@
             </div>
         </div>
 
-        <div class="project-card" data-aos="flip-up" data-aos-delay="100" style="border-left: 3px solid #00ff41;">
+        <div class="project-card hover-target" data-aos="flip-up" data-aos-delay="100" style="border-left: 3px solid #00ff41;">
             <div>
                 <h3>Messenger App <span style="font-size:0.7rem; background:#00ff41; color:black; padding:2px 5px; border-radius:3px;">DEPLOYED</span></h3>
-                <p style="color:#888; font-size:0.9rem;">Live on Google Play Store (Production). Real-time chat using Kotlin & Firebase. Signed APK & Security Validated. </p>
+                <p style="color:#888; font-size:0.9rem;">Live on Google Play Store (Production). Real-time chat using Kotlin & Firebase. Signed APK & Security Validated.</p>
             </div>
             <div>
-                <span class="tech-tag">KOTLIN</span> <span class="tech-tag">GOOGLE PLAY</span> <span class="tech-tag">FIREBASE</span> <span class="tech-tag">ANDRIOD</span>
+                <span class="tech-tag">KOTLIN</span> <span class="tech-tag">GOOGLE PLAY</span> <span class="tech-tag">FIREBASE</span> <span class="tech-tag">ANDROID</span>
             </div>
         </div>
 
-        <div class="project-card" data-aos="flip-up" data-aos-delay="200">
+        <div class="project-card hover-target" data-aos="flip-up" data-aos-delay="200">
             <div>
                 <h3>Voting Software</h3>
                 <p style="color:#888; font-size:0.9rem;">Secure Electronic Voting System with RBAC & JDBC Transaction Management.</p>
@@ -356,7 +431,7 @@
             </div>
         </div>
 
-        <div class="project-card" data-aos="flip-up" data-aos-delay="300">
+        <div class="project-card hover-target" data-aos="flip-up" data-aos-delay="300">
             <div>
                 <h3>Stock Management System</h3>
                 <p style="color:#888; font-size:0.9rem;">Desktop Inventory System reducing tracking errors by 75%.</p>
@@ -370,13 +445,11 @@
     <footer>
         <h2 style="color:var(--text); letter-spacing:2px;">ANKIT GOSWAMI</h2>
         <div style="margin:20px 0;">
-            <a href="mailto:ankit6969g@gmail.com" class="social-btn"><i class="fas fa-envelope"></i></a>
-            
-            <a href="https://www.linkedin.com/in/ankit-goswami-650245353/" target="_blank" class="social-btn">
+            <a href="mailto:ankit6969g@gmail.com" class="social-btn hover-target"><i class="fas fa-envelope"></i></a>
+            <a href="https://www.linkedin.com/in/ankit-goswami-650245353/" target="_blank" class="social-btn hover-target">
                 <i class="fab fa-linkedin"></i>
             </a>
-
-            <a href="https://github.com/your-username" target="_blank" class="social-btn">
+            <a href="https://github.com/your-username" target="_blank" class="social-btn hover-target">
                 <i class="fab fa-github"></i>
             </a>
         </div>
@@ -385,35 +458,95 @@
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        AOS.init({ duration: 800, once: true });
+        AOS.init({ duration: 800, once: false });
 
-        // MATRIX RAIN SCRIPT
+        // --- 1. SYSTEM BOOT PRELOADER ---
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('preloader').style.opacity = '0';
+                document.getElementById('preloader').style.pointerEvents = 'none';
+            }, 2200); 
+        });
+
+        // --- 2. SCROLL PROGRESS BAR ---
+        window.onscroll = function() {
+            let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            let scrolled = (winScroll / height) * 100;
+            document.getElementById("progress-bar").style.width = scrolled + "%";
+        };
+
+        // --- 3. HACKER TEXT DECODE EFFECT ---
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*";
+        const targets = document.querySelectorAll(".decode-effect");
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    let iterations = 0;
+                    const element = entry.target;
+                    const originalText = element.dataset.value;
+                    
+                    const interval = setInterval(() => {
+                        element.innerText = originalText.split("")
+                            .map((letter, index) => {
+                                if(index < iterations) {
+                                    return originalText[index];
+                                }
+                                return letters[Math.floor(Math.random() * 26)];
+                            })
+                            .join("");
+                        
+                        if(iterations >= originalText.length) clearInterval(interval);
+                        iterations += 1 / 3;
+                    }, 30);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        targets.forEach(target => observer.observe(target));
+
+        // --- 4. MAGNETIC CURSOR ---
+        const cursor = document.getElementById('cursor');
+        const hoverTargets = document.querySelectorAll('.hover-target');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+            target.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+        });
+
+        // --- 5. MATRIX RAIN SCRIPT ---
         const canvas = document.getElementById('matrix');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
+        const matrixChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()*&^%";
         const fontSize = 16;
         const columns = canvas.width / fontSize;
         const drops = [];
 
         for(let x = 0; x < columns; x++) drops[x] = 1;
 
-        function draw() {
+        function drawMatrix() {
             ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#0afff0"; // Cyber Cyan Text
+            ctx.fillStyle = "#0afff0"; 
             ctx.font = fontSize + "px monospace";
 
             for(let i = 0; i < drops.length; i++) {
-                const text = letters.charAt(Math.floor(Math.random() * letters.length));
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
                 ctx.fillText(text, i * fontSize, drops[i] * fontSize);
                 if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
                 drops[i]++;
             }
         }
-        setInterval(draw, 33);
+        setInterval(drawMatrix, 33);
 
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
